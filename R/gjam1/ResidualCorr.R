@@ -64,7 +64,7 @@ RhoCIU[upper.tri(RhoCIU,diag=TRUE)] <- NA
 RCIU <- as.numeric(t(RhoCIU))
 RCIU <- RCIU[!is.na(RCIU)]
 
-
+saveRDS(Rho, file="ResRho.rds")
 
 
 
