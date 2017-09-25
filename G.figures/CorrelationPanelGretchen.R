@@ -1,5 +1,7 @@
 # rm(list=ls())
-
+library(ggplot2)
+library(reshape2)
+library(ggrepel)
 # Read in saved data and compute stats
 ##### Residual correlations
 Rho <- readRDS(file="ResRho.rds")
@@ -64,12 +66,35 @@ ERCIU <- ERCIU[!is.na(ERCIU)]
 
 
 
-# sppnames <- c("black bullhead","black crappie","bowfin","brown bullhead",
-#               "common carp","golden shiner","largemouth bass","northern pike",
-#               "rock bass","smallmouth bass","cisco","walleye",
-#               "white sucker","yellow bullhead","yellow perch","sunfish")
+ sppnames <- c("black bullhead","black crappie","bowfin","brown bullhead", "common carp","golden shiner","largemouth bass","northern pike", "rock bass","smallmouth bass","cisco","walleye","white sucker","yellow bullhead","yellow perch","sunfish")
 
-# Finding example correlations
+
+colnames(ERhoMean)=sppnames
+rownames(ERhoMean)=sppnames 
+
+corr.data=melt(ERhoMean, value.name = "Env.cor", varnames = c("Species1", "Species2"))
+ 
+colnames(RhoMean)=sppnames
+rownames(RhoMean)=sppnames  
+ 
+corr.data2=melt(RhoMean, value.name = "Res.cor", varnames = c("Species1", "Species2"))
+
+corr.data=merge(corr.data, corr.data2, by=c("Species1", "Species2"))
+corr.data=corr.data[complete.cases(corr.data),]
+#if going to facet, need to repeat so all species dots appear in all species panels
+
+corr.data.doubled=melt(ERhoMean, value.name = "Env.cor", varnames = c("Species2", "Species1"))
+corr.data.doubled2=melt(RhoMean, value.name = "Res.cor", varnames = c("Species2", "Species1"))
+corr.data.doubled=merge(corr.data.doubled, corr.data.doubled2, by=c("Species1", "Species2"))
+corr.data.doubled=corr.data.doubled[complete.cases(corr.data.doubled),]
+corr.data.doubled=rbind(corr.data.doubled, corr.data)
+
+ggplot(corr.data.doubled, aes(Env.cor, Res.cor, colour=Species1))+geom_hline(yintercept = 0, alpha=0.5, colour="grey")+geom_vline(xintercept=0, alpha=0.5, colour="grey")+geom_point()+geom_text_repel(aes(label=Species1), size=3) +facet_wrap(~Species2)+theme_bw()+xlab("Shared environmental correlation")+ylab("Residual correlation")+theme(legend.position="none", panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_blank())
+ggsave("environmental_and_residual_correlations_by_species.png", height=12, width=10, units="in")
+
+ 
+ 
+ # Finding example correlations
 min(RMean)
 ERhoMean
 which(ERMean==min(ERMean))
