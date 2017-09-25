@@ -11,9 +11,9 @@ length(postSigMeans)
 # S[lower.tri(S, diag=TRUE)] <- postSigMeans
 
 # Convert S (half matrix) to full matrix
-# X <- diag(16) 
-# X[lower.tri(X, diag=TRUE)] <- postSigMeans 
-# X <- X + t(X) - diag(diag(X)) 
+X <- diag(16)
+X[lower.tri(X, diag=TRUE)] <- postSigMeans
+X <- X + t(X) - diag(diag(X))
 
 
 # Convert Sigma to Rho

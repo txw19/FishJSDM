@@ -28,6 +28,8 @@ dat <- merge(fishP, lakeP)
 dat[,.N]
 dim(dat)
 
+write.csv(dat, "Finaldat.csv", row.names = F)
+
 xdat <- dat[,20:24]
 ydat <- dat[,2:17]
 
