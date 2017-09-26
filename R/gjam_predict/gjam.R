@@ -145,10 +145,11 @@ saveRDS(jdm1, file=paste("gjamOut",i,".rds",sep=''))
 # Number of species
 numY <- 16
 
-# Converve predict_list into matrix
+# Converve preds - a list - into a matrix
 pred_matrix <- do.call(rbind, preds)
-# matrix(unlist(predict_list), ncol = 10, byrow = F)
 dim(pred_matrix)
+
+write.csv(pred_matrix, "PosteriorPreds.csv", row.names = F)
 
 # Seperate predictions and observed for rmse calcs
 marg.predictions <- pred_matrix[,1:16]
