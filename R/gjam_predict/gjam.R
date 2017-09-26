@@ -169,6 +169,8 @@ for(i in 1:numY){
 }  
 cond_rmse_calcs
 
+cond_rmse_calcs <- matrix(cond_rmse_calcs, nrow=1, ncol=numY)
+
 colnames(cond_rmse_calcs) <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
                                             "common.carp_intercept","golden.shiner_intercept","largemouth.bass_intercept","northern.pike_intercept",
                                             "rock.bass_intercept","smallmouth.bass_intercept","tullibee.(cisco)_intercept","walleye_intercept",
@@ -183,6 +185,8 @@ for(i in 1:numY){
   marg_rmse_calcs[i] <- rmse(obs.Y[,i],marg.predictions[,i])
 }  
 marg_rmse_calcs
+
+marg_rmse_calcs <- matrix(marg_rmse_calcs, nrow=1, ncol=numY)
 
 colnames(marg_rmse_calcs) <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
                               "common.carp_intercept","golden.shiner_intercept","largemouth.bass_intercept","northern.pike_intercept",
@@ -203,6 +207,8 @@ for(i in 1:numY){
 }  
 r2_calcs
 
+r2_calcs <- matrix(r2_calcs, nrow=1, ncol=numY)
+
 colnames(r2_calcs) <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
                         "common.carp_intercept","golden.shiner_intercept","largemouth.bass_intercept","northern.pike_intercept",
                         "rock.bass_intercept","smallmouth.bass_intercept","tullibee.(cisco)_intercept","walleye_intercept",
@@ -210,22 +216,22 @@ colnames(r2_calcs) <- c("black.bullhead_intercept","black.crappie_intercept","bo
 
 write.csv(r2_calcs, 'cond_r2.csv', row.names = F)
 
-# Save predicted posterior distibutions
-saveRDS(cond_pred_posterior, file="cond_post_pred.rds")
 
 ##################################
 # Calculate marginal predictive R2
-r2_calcs <- matrix(NA, ncol=5, nrow=1)
+r2_calcs_marg <- matrix(NA, ncol=5, nrow=1)
 for(i in 1:numY){
-  r2_calcs[i] <- r2_calc(obs.Y[,i],marg.predictions[,i])
+  r2_calcs_marg[i] <- r2_calc(obs.Y[,i],marg.predictions[,i])
 }  
-r2_calcs
+r2_calcs_marg
 
-colnames(r2_calcs) <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
+r2_calcs_marg <- matrix(r2_calcs_marg, nrow=1, ncol=numY)
+
+colnames(r2_calcs_marg) <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
                         "common.carp_intercept","golden.shiner_intercept","largemouth.bass_intercept","northern.pike_intercept",
                         "rock.bass_intercept","smallmouth.bass_intercept","tullibee.(cisco)_intercept","walleye_intercept",
                         "white.sucker_intercept","yellow.bullhead_intercept","yellow.perch_intercept","sunfish_intercept")
 
-write.csv(r2_calcs, 'marginal_r2.csv', row.names = F)
+write.csv(r2_calcs_marg, 'marginal_r2.csv', row.names = F)
 
 
