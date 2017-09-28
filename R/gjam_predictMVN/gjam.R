@@ -71,7 +71,7 @@ oos_rows <- which(dat$index==i)
 start.time = Sys.time()  # Start timer 
 
 jdm1 = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity, xdata=xdat, ydata=ydat,
-          modelList=list(PREDICTX = F, ng=30000,burnin=20000,typeNames=rep("CA",16), holdoutIndex=oos_rows))
+          modelList=list(PREDICTX = F, ng=50000,burnin=20000,typeNames=rep("CA",4), holdoutIndex=oos_rows))
 
 end.time = Sys.time()
 elapsed.time = round(difftime(end.time, start.time, units='mins'), dig = 2)

@@ -131,11 +131,11 @@ mtext(x.label, line = 1, side = 1, cex = 1, outer=T, adj=0.5)
 mtext(y.label, line = 1, side = 2, cex = 1, outer=T,adj=0.5)
 box()
 
-arrows(0.8,0.6,0.92,0.47, length=0.15)
-text(0.8, 0.62, "Largemouth and sunfish", cex=0.7)
-
-arrows(-0.94,-0.45,-0.94,-0.20, length=0.15)
-text(-0.8, -0.5, "White sucker and sunfish", cex=0.7)
+# arrows(0.8,0.6,0.92,0.47, length=0.15)
+# text(0.8, 0.62, "Largemouth and sunfish", cex=0.7)
+# 
+# arrows(-0.94,-0.45,-0.94,-0.20, length=0.15)
+# text(-0.8, -0.5, "White sucker and sunfish", cex=0.7)
 
 par(def.par)
 dev.off()

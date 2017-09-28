@@ -53,7 +53,7 @@ head(Beta2)
 # apply(Beta2,2,mean)
 
 # NUmber of MCMC samples to use for calculating EnvRho
-nsim <- 90000
+nsim <- 50000
 # Chain length from analysis
 chainLength <- dim(Beta2)[1]
 # # Select thinned steps in chain for posterior predictions to ensure we take values from 

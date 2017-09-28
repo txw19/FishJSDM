@@ -1,6 +1,6 @@
 
 # SigmaOut.rds contains the lower triangle of the variance covariance matrix, i.e., 136 columns with 16 species
-Sigma <- readRDS(file="SigmaOut.rds")
+Sigma <- readRDS(file="SigmaOut1.rds")
 str(Sigma)
 dim(Sigma)
 
@@ -14,10 +14,16 @@ length(postSigMeans)
 X <- diag(16)
 X[lower.tri(X, diag=TRUE)] <- postSigMeans
 X <- X + t(X) - diag(diag(X))
+dim(X)
+# cov2cor(X)
+
+# Check calcs
+# outgjam1 <- readRDS("gjamOut1.rds")
+# # Posterior means of Rho
+# round(outgjam1$parameters$corMu,3)
 
 
 # Convert Sigma to Rho
-K <- 16 # Number of species
 Rho <- array(NA, dim=c(dim(Sigma)[1], dim(X)[1], dim(X)[1]))
 dim(Rho)
 for(samp in 1:dim(Sigma)[1]){
@@ -28,12 +34,7 @@ for(samp in 1:dim(Sigma)[1]){
   Stemp[lower.tri(Stemp, diag=TRUE)] <- sigsamp 
   Stemp <- Stemp + t(Stemp) - diag(diag(Stemp)) 
   # Calculate correlation matrix from Sigma
-  for (k in 1:K){
-    for (k.prime in 1:K){
-      Rho[samp, k, k.prime] <- Stemp[k, k.prime]/
-      sqrt(Stemp[k,k]*Stemp[k.prime,k.prime])
-    }
-  }  
+  Rho[samp, , ] <- cov2cor(Stemp)
 }
 
 
@@ -65,8 +66,4 @@ RCIU <- as.numeric(t(RhoCIU))
 RCIU <- RCIU[!is.na(RCIU)]
 
 saveRDS(Rho, file="ResRho.rds")
-
-
-
-
 

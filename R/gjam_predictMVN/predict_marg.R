@@ -12,19 +12,112 @@ require(mvtnorm)
 # Read in final dat
 datFinal <- fread("dat.csv")
 dim(datFinal)
+
+
+# !!!!!!!!!!! TO DO !!!!!!!!!!!
+# Standardize predictors (gjam does this internally, we need to do so here?)
+
+
+
 # Read in RDS files in order, 1-10
-out1 <- readRDS(file="JDMmcmc_out1.rds")
-out2 <- readRDS(file="JDMmcmc_out2.rds")
-out3 <- readRDS(file="JDMmcmc_out3.rds")
-out4 <- readRDS(file="JDMmcmc_out4.rds")
-out5 <- readRDS(file="JDMmcmc_out5.rds")
-out6 <- readRDS(file="JDMmcmc_out6.rds")
-out7 <- readRDS(file="JDMmcmc_out7.rds")
-out8 <- readRDS(file="JDMmcmc_out8.rds")
-out9 <- readRDS(file="JDMmcmc_out9.rds")
-out10 <- readRDS(file="JDMmcmc_out10.rds")
-# Put MCMC output into list
+out1 <- readRDS(file="gjamOut1.rds")
+out2 <- readRDS(file="gjamOut2.rds")
+out3 <- readRDS(file="gjamOut3.rds")
+out4 <- readRDS(file="gjamOut4.rds")
+out5 <- readRDS(file="gjamOut5.rds")
+out6 <- readRDS(file="gjamOut6.rds")
+out7 <- readRDS(file="gjamOut7.rds")
+out8 <- readRDS(file="gjamOut8.rds")
+out9 <- readRDS(file="gjamOut9.rds")
+out10 <- readRDS(file="gjamOut10.rds")
+# Put gjam MCMC output into list
 mcmc_list <- list(out1,out2,out3,out4,out5,out6,out7,out8,out9,out10)
+
+
+########## GET BETA MCMC SAMPLES INTO CORRECT FORMAT
+## !!!!!!!!PLACE THIS INSIDE FOR LOOP ONCE WORKING
+# Beta coefficients dim = [nsim, 96], need array of [nsim, nspecies, ncovariates]
+Beta <- out1$chains$bgibbs #  will be list[[i]]$chains$bgibbs below
+dim(Beta)
+
+# Remove intercepts from Beta
+
+int.names <- c("black.bullhead_intercept","black.crappie_intercept","bowfin.(dogfish)_intercept","brown.bullhead_intercept",
+               "common.carp_intercept","golden.shiner_intercept","largemouth.bass_intercept","northern.pike_intercept",
+               "rock.bass_intercept","smallmouth.bass_intercept","tullibee.(cisco)_intercept","walleye_intercept",
+               "white.sucker_intercept","yellow.bullhead_intercept","yellow.perch_intercept","sunfish_intercept")
+
+Beta2 <- Beta[, !colnames(Beta) %in% int.names]
+
+dim(Beta2)
+head(Beta2)
+
+# We need matrices, one for each covariate, with rows=num MCMC samples, columns = number of species
+# and a list for each covariates. 
+const <- 5
+lst1 <- list()
+for(i in 1:5){
+  lst1[[i]] <- Beta2sub[,c(i,5+i,10+i,15+i,20+i,25+i,30+i,35+i,40+i,45+i,50+i,55+i,60+i,65+i,70+i,75+i)]
+}
+str(lst1)
+head(lst1[[1]])
+
+BetaA <- array(as.numeric(unlist(lst1)), dim=c(length(ID),numY,K))
+
+dim(BetaA)
+
+######### GET SIGMA IN CORRECT DIMENSIONS - PLACE IN FOR LOOP ONCE WORKIN
+# PUT IN LIST AS ABOCE AND THEN INTO AN ARRAY OF APPROPRIATE DIMENSIONS
+# SigmaOut.rds contains the lower triangle of the variance covariance matrix, i.e., 136 columns with 16 species
+Sigma <- out1$chains$sgibbs
+str(Sigma)
+dim(Sigma)
+
+numY <- 4
+
+postSigMeans <- apply(Sigma,2,mean)
+length(postSigMeans)
+
+# S <- diag(numY)
+# S[lower.tri(S, diag=TRUE)] <- postSigMeans
+
+# Convert S (half matrix) to full matrix
+X <- diag(numY)
+X[lower.tri(X, diag=TRUE)] <- postSigMeans
+X <- X + t(X) - diag(diag(X))
+
+# Convert Sigma to Rho
+K <- numY # Number of species
+Rho <- array(NA, dim=c(dim(Sigma)[1], dim(X)[1], dim(X)[1]))
+dim(Rho)
+for(samp in 1:dim(Sigma)[1]){
+  # Grab mcmc sample from Sigma
+  sigsamp <- Sigma[samp,]
+  # Convert S (half matrix) to full matrix
+  Stemp <- diag(16) 
+  Stemp[lower.tri(Stemp, diag=TRUE)] <- sigsamp 
+  Stemp <- Stemp + t(Stemp) - diag(diag(Stemp)) 
+  # Calculate correlation matrix from Sigma
+  for (k in 1:K){
+    for (k.prime in 1:K){
+      Rho[samp, k, k.prime] <- Stemp[k, k.prime]/
+        sqrt(Stemp[k,k]*Stemp[k.prime,k.prime])
+    }
+  }  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # names(mcmc_list[[1]])
 

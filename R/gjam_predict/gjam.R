@@ -56,7 +56,7 @@ for(i in 1:10){
 
 
 xdat <- dat[,20:24]
-ydat <- dat[,2:17]
+ydat <- sqrt(dat[,2:17]) # square-root transform CPE
 
 # Some gjam options for modelList:
 # holdoutN = 0, number of observations to hold out for out-of-sample prediction.

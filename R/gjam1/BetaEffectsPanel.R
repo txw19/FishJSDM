@@ -101,23 +101,23 @@ mtext(y.label, line = 1, side = 2, cex = 1, outer=T)
 
 # for(i in c(1,6,11,16,21,26,31,36,41,46,51,56,61,66,71,76)){
 
-if(i==1){ text(plotting.region[1]+15, 5.5, sppnames[1], cex=0.8) }
-if(i==6){ text(plotting.region[1]+4, 5.5, sppnames[2], cex=0.8) }
+if(i==1){ text(plotting.region[1]+1.4, 5.5, sppnames[1], cex=0.8) }
+if(i==6){ text(plotting.region[1]+0.7, 5.5, sppnames[2], cex=0.8) }
 if(i==11){ text(plotting.region[1]+0.2, 5.5, sppnames[3], cex=0.8) }
-if(i==16){ text(plotting.region[1]+1, 5.5, sppnames[4], cex=0.8) }
-if(i==21){ text(plotting.region[1]+4.5, 5.5, sppnames[5], cex=0.8) }
-if(i==26){ text(plotting.region[1]+1.4, 5.5, sppnames[6], cex=0.8) }
-if(i==31){ text(plotting.region[1]+0.35, 5.5, sppnames[7], cex=0.8) }
-if(i==36){ text(plotting.region[1]+1, 5.5, sppnames[8], cex=0.8) }
+if(i==16){ text(plotting.region[1]+0.3, 5.5, sppnames[4], cex=0.8) }
+if(i==21){ text(plotting.region[1]+0.9, 5.5, sppnames[5], cex=0.8) }
+if(i==26){ text(plotting.region[1]+0.4, 5.5, sppnames[6], cex=0.8) }
+if(i==31){ text(plotting.region[1]+0.2, 5.5, sppnames[7], cex=0.8) }
+if(i==36){ text(plotting.region[1]+0.15, 5.5, sppnames[8], cex=0.8) }
 
-if(i==41){ text(plotting.region[1]+1.8, 5.5, sppnames[9], cex=0.8) }
-if(i==46){ text(plotting.region[1]+0.6, 5.5, sppnames[10], cex=0.8) }
-if(i==51){ text(plotting.region[1]+5.5, 5.5, sppnames[11], cex=0.8) }
-if(i==56){ text(plotting.region[1]+1.8, 5.5, sppnames[12], cex=0.8) }
-if(i==61){ text(plotting.region[1]+1.5, 5.5, sppnames[13], cex=0.8) }
-if(i==66){ text(plotting.region[1]+1.6, 5.5, sppnames[14], cex=0.8) }
-if(i==71){ text(plotting.region[1]+6, 5.5, sppnames[15], cex=0.8) }
-if(i==76){ text(plotting.region[1]+2, 5.5, sppnames[16], cex=0.8) }
+if(i==41){ text(plotting.region[1]+0.6, 5.5, sppnames[9], cex=0.8) }
+if(i==46){ text(plotting.region[1]+0.4, 5.5, sppnames[10], cex=0.8) }
+if(i==51){ text(plotting.region[1]+1.5, 5.5, sppnames[11], cex=0.8) }
+if(i==56){ text(plotting.region[1]+0.5, 5.5, sppnames[12], cex=0.8) }
+if(i==61){ text(plotting.region[1]+0.5, 5.5, sppnames[13], cex=0.8) }
+if(i==66){ text(plotting.region[1]+0.4, 5.5, sppnames[14], cex=0.8) }
+if(i==71){ text(plotting.region[1]+0.8, 5.5, sppnames[15], cex=0.8) }
+if(i==76){ text(plotting.region[1]+0.4, 5.5, sppnames[16], cex=0.8) }
 
 # abline(h=0)
 box()
