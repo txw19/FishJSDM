@@ -17,7 +17,6 @@ X <- X + t(X) - diag(diag(X))
 
 
 # Convert Sigma to Rho
-K <- 16 # Number of species
 Rho <- array(NA, dim=c(dim(Sigma)[1], dim(X)[1], dim(X)[1]))
 dim(Rho)
 for(samp in 1:dim(Sigma)[1]){
@@ -28,12 +27,7 @@ for(samp in 1:dim(Sigma)[1]){
   Stemp[lower.tri(Stemp, diag=TRUE)] <- sigsamp 
   Stemp <- Stemp + t(Stemp) - diag(diag(Stemp)) 
   # Calculate correlation matrix from Sigma
-  for (k in 1:K){
-    for (k.prime in 1:K){
-      Rho[samp, k, k.prime] <- Stemp[k, k.prime]/
-      sqrt(Stemp[k,k]*Stemp[k.prime,k.prime])
-    }
-  }  
+  Rho[samp, , ] <- cov2cor(Stemp)
 }
 
 
