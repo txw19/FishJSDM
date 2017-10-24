@@ -1,5 +1,5 @@
 # rm(list=ls())
-library(gjam)
+# library(gjam)
 library(data.table)
 
 
@@ -61,13 +61,21 @@ ydat <- sqrt(dat[,2:17])
 xdat <- as.data.frame(xdat)
 ydat <- as.data.frame(ydat)
 
+
+# ml <-list(PREDICTX = F, ng=1000,burnin=500,typeNames=rep("CA",16)) 
+# ml$FULL=T
+# 
+# jdmtest = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity, xdata=xdat, ydata=ydat,
+#             modelList=ml)
+
+
 # Some gjam options for modelList:
 # holdoutN = 0, number of observations to hold out for out-of-sample prediction.
 # holdoutIndex =  numeric(0), numeric vector of observations (row numbers) to holdout for out-of-sample prediction
 # ,holdoutN=200
 # -typeNames = "CA" means continuous abundance (meaning greater than 0).
 # modelList$FULL = T
-start.time = Sys.time()  # Start timer 
+# start.time = Sys.time()  # Start timer 
 
 ml <-list(PREDICTX = F, ng=50000,burnin=30000,typeNames=rep("CA",16)) 
 ml$FULL=T
@@ -75,23 +83,39 @@ ml$FULL=T
 jdm1 = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity, xdata=xdat, ydata=ydat,
           modelList=ml)
 
-end.time = Sys.time()
-elapsed.time = round(difftime(end.time, start.time, units='mins'), dig = 2)
-cat('Posterior computed in ', elapsed.time, ' minutes\n\n', sep='') 
+# end.time = Sys.time()
+# elapsed.time = round(difftime(end.time, start.time, units='mins'), dig = 2)
+# cat('Posterior computed in ', elapsed.time, ' minutes\n\n', sep='') 
 
 # jdm1 <- readRDS(file="gjamOUT1.rds")
-
+str(jdm1)
 summary(jdm1)
 names(jdm1)
 
+# in-sample posterior predictions
+fullpostY <- jdm1$chains$ygibbs
+dim(fullpostY)
+yMedian_gjam <- apply(fullpostY,2,median)
+length(yMedian_gjam)
 
+yMean_gjam <- apply(fullpostY,2,mean)
+# Put in matrix consistent with gjam output for comparisons
+yMeanMat <- matrix(yMean_gjam, nrow=dim(ObsY)[1], ncol=dim(ObsY)[2],byrow = F)
+head(yMeanMat)
 ## Plot observed vs. predicted (marginal predictions)
 # Predicted values of Y
+# Posterior means
 yMu  <- jdm1$prediction$ypredMu 
+yMuv <- as.vector(yMu)
 # Observed values of Y
 ObsY <- jdm1$inputs$y
+ObsYv <- as.vector(ObsY)
 
-plot(ObsY, yMu)
+
+plot(ObsYv, yMuv)
+# Posterior medians
+points(ObsYv, yMedian_gjam, col='red')
+# points(ObsYv, yMean_gjam, col='green')
 abline(0,1)
 
 # plot(yMu[,1], ObsY[,1])
