@@ -27,7 +27,9 @@ library(MASS)
 
 # Read in lake covariate and fish data
 lakeP=fread("lake_predictors_for_joint_distribution.csv")
-fishP=fread("cpue_JDM.csv")
+
+fishP=fread("catch_and_effort_most_recent_with_predictors.csv")
+# fishP=fread("cpue_JDM.csv")
 dim(lakeP) #1343 x 8
 dim(fishP) #1343 x 17
 
@@ -51,54 +53,104 @@ dat <- merge(fishP, lakeP)
 dat[,.N]
 dim(dat)
 
-write.csv(dat, "Finaldat.csv", row.names = F)
 
+# Remove column
+dat[,dowlknum:=NULL]
+
+# Remove lakes with missing Secchi
+dat <- dat[!is.na(dat$Secchi.lake.mean),]
+
+# Find some "outliers"
+which(dat$black.crappie>2600)
+which(dat$brown.bullhead>500)
+which(dat$golden.shiner>300)
+# Remove outliers
+dat <- dat[dat$black.crappie < 2600 & dat$brown.bullhead < 500 & dat$golden.shiner < 300]
 dim(dat)
 
-xdat <- dat[,20:24]
-ydat <- sqrt(dat[,2:17])
+###########################
+# Read in lake lat/longs
+lls <- fread("mn_lake_list.csv")
+head(lls)
+dim(lls)
+# Grab lat/long columns
+lls2 <- lls[, .(DOW, LAKE_CENTER_LAT_DD5,LAKE_CENTER_LONG_DD5)]
+head(lls2)
+dim(lls2)
+
+setkey(dat, DOW)
+setkey(lls2, DOW)
+dat <- merge(dat, lls2)
+dat[,.N]
+head(dat)
+
+# Erin data-add predictions
+Edat <- cbind(dat,yMu)
+dim(Edat)
+
+head(Edat)
+# write.csv(Edat, "FinaldatForE.csv", row.names = F)
+
+# write.csv(dat, "Finaldat.csv", row.names = F)
+
+
+
+summary(dat)
+
+
+xdat <- dat[,23:27]
+ydat <- dat[,4:19]
 
 xdat <- as.data.frame(xdat)
 ydat <- as.data.frame(ydat)
+
+# Effort
+ef <- as.numeric(dat$EFFORT)
+
+ef  <- list( columns = 1:16, values = dat$EFFORT)
 
 
 # Some gjam options for modelList:
 # holdoutN = 0, number of observations to hold out for out-of-sample prediction.
 # holdoutIndex =  numeric(0), numeric vector of observations (row numbers) to holdout for out-of-sample prediction
 # ,holdoutN=200
-# -typeNames = "CA" means continuous abundance (meaning greater than 0).
-# modelList$FULL = T
-# start.time = Sys.time()  # Start timer 
+start.time = Sys.time()  # Start timer: 56 minute run time
 
-# ml <-list(PREDICTX = F, ng=50000,burnin=30000,typeNames=rep("CA",16)) 
-
-ml <-list(PREDICTX = F, ng=50000,burnin=30000,typeNames=rep("CA",16)) 
+ml <-list(PREDICTX = F, ng=70000,burnin=60000,typeNames=rep("DA",16), effort=ef) 
 ml$FULL=T
 
-jdm1 = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity, xdata=xdat, ydata=ydat,
+# jdm1 = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity, 
+#             xdata=xdat, ydata=ydat,
+#             modelList=ml)
+# I(temp^2)
+
+jdm1 = gjam(~ log_area + log_depth + Secchi.lake.mean + mean.gdd + alkalinity + 
+              I(log_area^2) + I(log_depth^2) + I(Secchi.lake.mean^2)+ I(mean.gdd^2) + I(alkalinity^2),
+          xdata=xdat, ydata=ydat,
           modelList=ml)
 
-# end.time = Sys.time()
-# elapsed.time = round(difftime(end.time, start.time, units='mins'), dig = 2)
-# cat('Posterior computed in ', elapsed.time, ' minutes\n\n', sep='') 
+end.time = Sys.time()
+elapsed.time = round(difftime(end.time, start.time, units='mins'), dig = 2)
+cat('Posterior computed in ', elapsed.time, ' minutes\n\n', sep='')
 
 # jdm1 <- readRDS(file="gjamOUT1.rds")
 str(jdm1)
 summary(jdm1)
 names(jdm1)
 
+# jdm1$parameters$corMu
+
+# Plot gjam output
+plotPars <- list(GRIDPLOTS=T,PLOTTALLy=F,SAVEPLOTS=T,SMALLPLOTS = F) 
+fit <- gjamPlot(jdm1, plotPars)
+
 # in-sample posterior predictions
 fullpostY <- jdm1$chains$ygibbs
-dim(fullpostY)
+# dim(fullpostY)
+# # Calculate posterior medians
 yMedian_gjam <- apply(fullpostY,2,median)
-length(yMedian_gjam)
+# length(yMedian_gjam)
 
-# yMean_gjam <- apply(fullpostY,2,mean)
-# Put in matrix consistent with gjam output for comparisons
-# yMeanMat <- matrix(yMean_gjam, nrow=dim(ObsY)[1], ncol=dim(ObsY)[2],byrow = F)
-# head(yMeanMat)
-## Plot observed vs. predicted (marginal predictions)
-# Predicted values of Y
 # Posterior means
 yMu  <- jdm1$prediction$ypredMu 
 yMuv <- as.vector(yMu)
@@ -109,15 +161,17 @@ ObsYv <- as.vector(ObsY)
 # Plot observed vs. posterior mean
 plot(ObsYv, yMuv)
 # Overlay posterior medians
-points(ObsYv, yMedian_gjam, col='red')
+# points(ObsYv, yMedian_gjam, col='red')
 # points(ObsYv, yMean_gjam, col='green')
 abline(0,1)
 
-# plot(yMu[,1], ObsY[,1])
-# abline(0,1)
-# 
-# plot(yMu[,3], ObsY[,3])
-# abline(0,1)
+# In-sample predictions, i.e., "xdata" is not provided in gjamPredict
+gjamPredict(jdm1, y2plot = colnames(ydat))
+# Northern Pike
+gjamPredict(jdm1, y2plot = colnames(ydat)[8])
+# Walleye
+gjamPredict(jdm1, y2plot = colnames(ydat)[12])
+gjamPredict(jdm1, y2plot = colnames(ydat)[13])
 
 # Posterior predictions for each species
 sppPred <- array(fullpostY, dim=c(dim(jdm1$chains$bgibbs)[1],dim(xdat)[1],dim(jdm1$prediction$presence)[2]))
@@ -142,8 +196,8 @@ par(mar = c(1, 0, 0, 0) + 0.1,oma=c(2,2.5,0,0.5))
 for(i in 1:16){
   s1 <- apply(sppPred[,,i],2,median)
   s2 <- apply(sppPred[,,i],2,mean)
-  plot(ObsY[,i],s1,axes=F, xlab='',ylab='',type='p', cex=0.5)
-  points(ObsY[,i],s2, col="red", cex=0.5)
+  plot(ObsY[,i],s2,axes=F, xlab='',ylab='',type='p', cex=0.5)
+  # points(ObsY[,i],s2, col="red", cex=0.5)
   axis(side=1,cex.axis=0.8, mgp=c(1,0,0),tck= -0.01)
   axis(side=2,cex.axis=0.8, tck= -0.005, mgp=c(0,0.3,0), las=1)
   box()
@@ -156,11 +210,9 @@ dev.off()
 
 
 
-
-
 ######################################
 ######################################
-# MARGINAL prediction can also be done usig gjamPredict
+# Out-of-sample prediction can also be done usig gjamPredict, specifying xdata
 # Obtain full posterior predictive distributions using FULL=T
 xdata <- xdat
 newdata   <- list(xdata = xdata, nsim = 1000 )
@@ -172,103 +224,12 @@ abline(0,1)
 
 ### p1$ychains has the posterior predictive distributions for each observation and species
 
-# Grab posterior samples for a species
-# spp1 <- p1$ychains[,1:1343]
-# hist(spp1)
-# spp1Mean <- apply(spp1,2,mean)
-# hist(spp1Mean)
-# spp1Median <- apply(spp1,2,median)
-# hist(spp1Median)
-
-# Obtain posterior medians for all obs
-yMedian <- apply(p1$ychains,2,median)
-length(yMedian)
 
 
-plot(ObsYv, yMedian)
-abline(0,1)
-
-
-# Change vector of predictions to matrix for plotting by species
-yMedianMat <- matrix(yMedian, nrow=dim(ObsY)[1], ncol=dim(ObsY)[2],byrow = F)
-
-# black bullhead
-plot(yMu[,1], ObsY[,1])
-points(yMedianMat[,1],ObsY[,1], col='red')
-abline(0,1)
-
-# Walleye
-plot(yMu[,12], ObsY[,12])
-points(yMedianMat[,12],ObsY[,12], col='red')
-abline(0,1)
-
-# Yellow perch
-plot(yMu[,15], ObsY[,15])
-points(yMedianMat[,15],ObsY[,15], col='red')
-abline(0,1)
-
-
-
-
-# prediction$presence gives you the probability of presence for the species/location. 
-# Therefore, 1-prediction$presence gives the probability of a 0
-# probZero <- 1-jdm1$prediction$presence
-# head(probZero)
-# # Replace post means with zero if prob zero greater than threshold
-# yMu[probZero >0.7] <- 0
-# head(yMu)
-# apply(probZero,2,range)
-# plot(yMu, ObsY)
-# abline(0,1)
-
-# # Walleye
-# plot(yMu[,12], ObsY[,12])
-# abline(0,1)
-# 
-# # Perch
-# plot(yMu[,14], ObsY[,14])
-# abline(0,1)
-# 
-# plot(yMu[,3], ObsY[,3])
-# abline(0,1)
-
-# plot(probZero[,3],ObsY[,3])
-
-
-###### Plot average CPE  after removing the 0s to see fits. 
-# Ave CPE is computed as Ymu divided by the probability of presence. 
-# Predicted values of Y
-# yMu  <- jdm1$prediction$ypredMu 
-# head(yMu)
-# summary(yMu)
-# # Remove zero preds
-# yMu[yMu ==0] <- NA
-# 
-# yMuAve <- yMu/jdm1$prediction$presence
-# head(yMuAve)
-# 
-# plot(yMuAve, ObsY)
-# abline(0,1)
-# 
-# plot(yMuAve[,3], ObsY[,3])
-# abline(0,1)
-# 
-# 
-# 
-# # Posterior means of beta
-# jdm1$parameters$betaMu
-# 
-# # Posterior means of sigma
-# jdm1$parameters$sigMu
-# dim(jdm1$parameters$sigMu)
-# 
-# # Posterior means of Rho
-# jdm1$parameters$corMu
-# 
 # head(jdm1$chains$bgibbs) #these are all the betas
 BetaOut <- jdm1$chains$bgibbs
 dim(BetaOut)
-
+hist(BetaOut[,3])
 # apply(BetaOut,2,mean)
 
 # head(jdm1$chains$sgibbs) #these are all the elements of Sigma
@@ -278,7 +239,7 @@ dim(SigmaOut)
 
 saveRDS(BetaOut, file="BetaOut.rds")
 saveRDS(SigmaOut, file="SigmaOut.rds")
-saveRDS(jdm1, file="gjamOUT1.rds")
+# saveRDS(jdm1, file="gjamOUT1.rds")
 
 
 
